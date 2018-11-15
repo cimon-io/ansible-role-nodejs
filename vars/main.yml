@@ -9,5 +9,4 @@ node_software_dependencies:
   - build-essential
   - libssl-dev
   - apt-transport-https
-  - python-software-properties
-
+  - software-properties-common
