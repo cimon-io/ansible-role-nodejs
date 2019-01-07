@@ -15,11 +15,14 @@
 
 - name: "install dependencies"
   apt:
-    pkg: "{{ item }}"
+    pkg: "{{ node_software_dependencies }}"
     state: present
     update_cache: true
     cache_valid_time: "{{ apt_cache_valid_time }}"
-  with_items: "{{ node_software_dependencies }}"
+  retries: "{{ remote_package_retries }}"
+  register: apt_result
+  until: apt_result is succeeded
+  become: True
   tags:
     - nodejs
 
@@ -28,6 +31,7 @@
     repo: "https://github.com/creationix/nvm.git"
     dest: "{{ node_user_home }}/.nvm"
     version: "{{ node_nvm_version }}"
+  become: True
   become_user: "{{ node_user }}"
   tags:
     - nodejs
@@ -39,6 +43,7 @@
     owner: "root"
     group: "root"
     mode: 0755
+  become: True
   tags:
     - nodejs
 
@@ -46,6 +51,7 @@
   shell: "/bin/bash -lc 'nvm install {{ node_version }}'"
   args:
     creates: "{{ node_user_home }}/.nvm/versions/node/{{ node_version }}"
+  become: True
   become_user: "{{ node_user }}"
   register: nvm_install_result
   tags:
@@ -53,6 +59,7 @@
 
 - name: "set default node version"
   shell: "/bin/bash -lc 'nvm alias default {{ node_version }}'"
+  become: True
   become_user: "{{ node_user }}"
   when: nvm_install_result.changed
   tags:
